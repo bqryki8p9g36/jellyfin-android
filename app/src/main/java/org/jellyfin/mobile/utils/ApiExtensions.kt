@@ -15,6 +15,7 @@ import org.jellyfin.apiclient.model.querying.LatestItemsQuery
 import org.jellyfin.apiclient.model.session.PlaybackProgressInfo
 import org.jellyfin.apiclient.model.session.PlaybackStopInfo
 import org.jellyfin.apiclient.model.system.PublicSystemInfo
+import org.jellyfin.apiclient.model.users.AuthenticationResult
 import timber.log.Timber
 import java.util.*
 import kotlin.coroutines.Continuation
@@ -30,6 +31,10 @@ suspend fun ApiClient.getPublicSystemInfo(): PublicSystemInfo? = suspendCoroutin
 
 suspend fun ApiClient.getServerConfiguration(): ServerConfiguration? = suspendCoroutine { continuation ->
     GetServerConfigurationAsync(ContinuationResponse(continuation))
+}
+
+suspend fun ApiClient.authenticateUser(username: String, password: String): AuthenticationResult? = suspendCoroutine { continuation ->
+    AuthenticateUserAsync(username, password, ContinuationResponse(continuation))
 }
 
 suspend fun ApiClient.reportPlaybackProgress(progressInfo: PlaybackProgressInfo) = suspendCoroutine<Boolean> { continuation ->
