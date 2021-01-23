@@ -3,14 +3,13 @@ package org.jellyfin.mobile
 import coil.ImageLoader
 import kotlinx.coroutines.channels.Channel
 import okhttp3.OkHttpClient
-import org.jellyfin.apiclient.AppInfo
-import org.jellyfin.apiclient.Jellyfin
-import org.jellyfin.apiclient.android
-import org.jellyfin.apiclient.interaction.AndroidDevice
-import org.jellyfin.mobile.api.TimberLogger
+import org.jellyfin.sdk.Jellyfin
+import org.jellyfin.sdk.android
+import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.mobile.controller.ServerController
 import org.jellyfin.mobile.fragment.ConnectFragment
 import org.jellyfin.mobile.fragment.WebViewFragment
+import org.jellyfin.mobile.media.car.LibraryBrowser
 import org.jellyfin.mobile.player.PlayerEvent
 import org.jellyfin.mobile.player.PlayerFragment
 import org.jellyfin.mobile.utils.Constants
@@ -32,13 +31,13 @@ val applicationModule = module {
     single { ImageLoader(androidApplication()) }
     single {
         Jellyfin {
-            appInfo = AppInfo(Constants.APP_INFO_NAME, Constants.APP_INFO_VERSION)
-            logger = TimberLogger()
             android(androidApplication())
+
+            clientInfo = ClientInfo(
+                name = Constants.APP_INFO_NAME,
+                version = Constants.APP_INFO_VERSION
+            )
         }
-    }
-    single {
-        get<Jellyfin>().createApi(device = AndroidDevice.fromContext(androidApplication()))
     }
     single { PermissionRequestHelper() }
     single { WebappFunctionChannel() }
@@ -55,4 +54,7 @@ val applicationModule = module {
     fragment { ConnectFragment() }
     fragment { WebViewFragment() }
     fragment { PlayerFragment() }
+
+    // Media
+    factory { LibraryBrowser(get(), get(), get(), get(), get(), get(), get(), get(), get(), get())  }
 }

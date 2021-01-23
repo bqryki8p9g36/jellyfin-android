@@ -14,15 +14,14 @@ import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.analytics.AnalyticsCollector
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.util.Clock
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
-import org.jellyfin.apiclient.interaction.ApiClient
-import org.jellyfin.apiclient.model.session.PlaybackProgressInfo
-import org.jellyfin.apiclient.model.session.PlaybackStopInfo
+import org.jellyfin.sdk.api.operations.PlayStateApi
+import org.jellyfin.sdk.model.api.PlayMethod
+import org.jellyfin.sdk.model.api.PlaybackProgressInfo
+import org.jellyfin.sdk.model.api.PlaybackStopInfo
+import org.jellyfin.sdk.model.api.RepeatMode
+import org.jellyfin.mobile.AppPreferences
 import org.jellyfin.mobile.BuildConfig
 import org.jellyfin.mobile.PLAYER_EVENT_CHANNEL
 import org.jellyfin.mobile.player.source.JellyfinMediaSource
@@ -30,13 +29,15 @@ import org.jellyfin.mobile.player.source.MediaSourceManager
 import org.jellyfin.mobile.utils.*
 import org.jellyfin.mobile.utils.Constants.SUPPORTED_VIDEO_PLAYER_PLAYBACK_ACTIONS
 import org.jellyfin.mobile.webapp.WebappFunctionChannel
+import org.jellyfin.sdk.model.serializer.toUUID
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import org.koin.core.qualifier.named
-import org.jellyfin.apiclient.model.session.RepeatMode as ApiRepeatMode
+import java.util.*
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application), KoinComponent, Player.EventListener {
-    val apiClient: ApiClient by inject()
+    private val appPreferences by inject<AppPreferences>()
+    private val playStateApi by inject<PlayStateApi>()
     val mediaSourceManager = MediaSourceManager(this)
     private val audioManager: AudioManager by lazy { getApplication<Application>().getSystemService()!! }
     val notificationHelper: PlayerNotificationHelper by lazy { PlayerNotificationHelper(this) }
@@ -128,16 +129,20 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
                 // Report playback stop via API
                 withTimeoutOrNull(200) {
                     val (playbackState, currentPosition) = playerState
-                    apiClient.reportPlaybackStopped(PlaybackStopInfo().apply {
-                        itemId = mediaSource.id
+                    playStateApi.reportPlaybackStopped(PlaybackStopInfo(
+                        itemId = mediaSource.id.toUUID(),
                         positionTicks = when (playbackState) {
                             Player.STATE_ENDED -> mediaSource.mediaDurationTicks
                             else -> currentPosition * Constants.TICKS_PER_MILLISECOND
-                        }
-                    })
+                        },
+                        failed = false
+                    ))
                     if (playbackState == Player.STATE_ENDED) {
                         // Mark video as watched
-                        apiClient.markPlayed(mediaSource.id, apiClient.currentUserId)
+                        playStateApi.markPlayedItem(
+                            userId = appPreferences.currentUserUuid!!,
+                            itemId = mediaSource.id.toUUID(),
+                        )
                     }
                 }
             }
@@ -173,18 +178,20 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
         val playbackPositionMillis = player.currentPosition
         if (player.playbackState != Player.STATE_ENDED) {
             webappFunctionChannel.exoPlayerUpdateProgress(playbackPositionMillis)
-            apiClient.reportPlaybackProgress(PlaybackProgressInfo().apply {
-                itemId = mediaSource.id
-                canSeek = true
-                isPaused = !player.isPlaying
-                isMuted = false
-                positionTicks = playbackPositionMillis * Constants.TICKS_PER_MILLISECOND
-                val stream = AudioManager.STREAM_MUSIC
-                val volumeRange = audioManager.getVolumeRange(stream)
-                val currentVolume = audioManager.getStreamVolume(stream)
-                volumeLevel = (currentVolume - volumeRange.first) * 100 / volumeRange.width
-                repeatMode = ApiRepeatMode.RepeatNone
-            })
+
+            val stream = AudioManager.STREAM_MUSIC
+            val volumeRange = audioManager.getVolumeRange(stream)
+            val currentVolume = audioManager.getStreamVolume(stream)
+            playStateApi.reportPlaybackProgress(PlaybackProgressInfo(
+                itemId = mediaSource.id.toUUID(),
+                canSeek = true,
+                isPaused = !player.isPlaying,
+                isMuted = false,
+                positionTicks = playbackPositionMillis * Constants.TICKS_PER_MILLISECOND,
+                volumeLevel = (currentVolume - volumeRange.first) * 100 / volumeRange.width,
+                repeatMode = RepeatMode.REPEAT_NONE,
+                playMethod = PlayMethod.DIRECT_PLAY, // mediaSource.playMethod is incompatible because it's a string
+            ))
         }
     }
 

@@ -27,7 +27,6 @@ import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import kotlinx.coroutines.*
-import org.jellyfin.apiclient.interaction.ApiClient
 import org.jellyfin.mobile.R
 import org.jellyfin.mobile.cast.CastPlayerProvider
 import org.jellyfin.mobile.cast.ICastPlayerProvider
@@ -36,14 +35,15 @@ import org.jellyfin.mobile.media.car.LibraryBrowser
 import org.jellyfin.mobile.media.car.LibraryPage
 import org.jellyfin.mobile.model.sql.entity.ServerUser
 import org.jellyfin.mobile.utils.toast
+import org.jellyfin.sdk.api.client.KtorClient
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import com.google.android.exoplayer2.MediaItem as ExoPlayerMediaItem
 
 class MediaService : MediaBrowserServiceCompat() {
 
-    private val apiClient: ApiClient by inject()
-    private val serverController: ServerController by inject()
+    private val apiClient by inject<KtorClient>()
+    private val serverController by inject<ServerController>()
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -51,7 +51,7 @@ class MediaService : MediaBrowserServiceCompat() {
 
     private lateinit var loadingJob: Job
     private var serverUser: ServerUser? = null
-    private val libraryBrowser = LibraryBrowser(this, apiClient)
+    private val libraryBrowser by inject<LibraryBrowser>()
 
     // The current player will either be an ExoPlayer (for local playback) or a CastPlayer (for
     // remote playback through a Cast device).
@@ -91,10 +91,14 @@ class MediaService : MediaBrowserServiceCompat() {
         super.onCreate()
 
         loadingJob = serviceScope.launch {
-            serverUser = serverController.loadCurrentServerUser()
-            serverUser?.let { serverUser ->
-                apiClient.ChangeServerLocation(serverUser.server.hostname.trimEnd('/'))
-                apiClient.SetAuthenticationInfo(serverUser.user.accessToken, serverUser.user.userId)
+            try {
+                serverUser = serverController.loadCurrentServerUser()
+                serverUser?.let { serverUser ->
+                    apiClient.baseUrl = serverUser.server.hostname
+                    apiClient.accessToken = serverUser.user.accessToken
+                }
+            } catch (err: Exception) {
+                Timber.e(err)
             }
         }
 
@@ -168,10 +172,15 @@ class MediaService : MediaBrowserServiceCompat() {
         result.detach()
 
         serviceScope.launch(Dispatchers.IO) {
-            // Ensure credentials were loaded already
-            loadingJob.join()
-            val library = if (serverUser != null) libraryBrowser.loadLibrary(parentId) else null
-            result.sendResult(library ?: emptyList())
+            try {
+                // Ensure credentials were loaded already
+                loadingJob.join()
+                val library = if (serverUser != null) libraryBrowser.loadLibrary(parentId) else null
+                result.sendResult(library ?: emptyList())
+
+            } catch (err: Exception) {
+                Timber.e(err)
+            }
         }
     }
 
@@ -269,10 +278,14 @@ class MediaService : MediaBrowserServiceCompat() {
 
         override fun onPrepare(playWhenReady: Boolean) {
             serviceScope.launch {
-                val recents = libraryBrowser.getDefaultRecents()
-                if (recents != null) {
-                    preparePlaylist(recents, 0, playWhenReady)
-                } else setPlaybackError()
+                try {
+                    val recents = libraryBrowser.getDefaultRecents()
+                    if (recents != null) {
+                        preparePlaylist(recents, 0, playWhenReady)
+                    } else setPlaybackError()
+                } catch (err: Exception) {
+                    Timber.e(err)
+                }
             }
         }
 
@@ -281,11 +294,15 @@ class MediaService : MediaBrowserServiceCompat() {
                 // Recents requested
                 onPrepare(playWhenReady)
             } else serviceScope.launch {
-                val result = libraryBrowser.buildPlayQueue(mediaId)
-                if (result != null) {
-                    val (playbackQueue, initialPlaybackIndex) = result
-                    preparePlaylist(playbackQueue, initialPlaybackIndex, playWhenReady)
-                } else setPlaybackError()
+                try {
+                    val result = libraryBrowser.buildPlayQueue(mediaId)
+                    if (result != null) {
+                        val (playbackQueue, initialPlaybackIndex) = result
+                        preparePlaylist(playbackQueue, initialPlaybackIndex, playWhenReady)
+                    } else setPlaybackError()
+                } catch (err: Exception) {
+                    Timber.e(err)
+                }
             }
         }
 
@@ -294,10 +311,14 @@ class MediaService : MediaBrowserServiceCompat() {
                 // No search provided, fallback to recents
                 onPrepare(playWhenReady)
             } else serviceScope.launch {
-                val results = libraryBrowser.getSearchResults(query, extras)
-                if (results != null) {
-                    preparePlaylist(results, 0, playWhenReady)
-                } else setPlaybackError()
+                try {
+                    val results = libraryBrowser.getSearchResults(query, extras)
+                    if (results != null) {
+                        preparePlaylist(results, 0, playWhenReady)
+                    } else setPlaybackError()
+                } catch (err: Exception) {
+                    Timber.e(err)
+                }
             }
         }
 
