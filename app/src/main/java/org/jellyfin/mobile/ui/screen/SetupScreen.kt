@@ -5,18 +5,18 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.ExperimentalFocus
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.FixedScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.font
-import androidx.compose.ui.text.font.fontFamily
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,7 +40,7 @@ class SetupScreen : AbstractScreen() {
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
             ) {
                 LogoHeader()
-                Crossfade(current = serverSelected) { serverSelected ->
+                Crossfade(targetState = serverSelected) { serverSelected ->
                     if (!serverSelected) {
                         ServerSelection(
                             serverController = serverController,
@@ -59,14 +59,15 @@ class SetupScreen : AbstractScreen() {
     fun LogoHeader() {
         CenterRow {
             Image(
-                asset = vectorResource(R.drawable.ic_launcher_foreground),
+                painter = painterResource(R.drawable.ic_launcher_foreground),
                 modifier = Modifier.width(72.dp).height(72.dp).padding(top = 8.dp),
                 contentScale = FixedScale(1.2f),
+                contentDescription = null,
             )
             Text(
                 text = stringResource(R.string.app_name_short),
                 modifier = Modifier.padding(vertical = 56.dp).padding(start = 12.dp, end = 24.dp),
-                fontFamily = fontFamily(font(R.font.quicksand)),
+                fontFamily = FontFamily(Font(R.font.quicksand)),
                 maxLines = 1,
                 style = MaterialTheme.typography.h3,
             )
@@ -130,15 +131,18 @@ class SetupScreen : AbstractScreen() {
                 label = {
                     Text(text = stringResource(R.string.host_input_hint))
                 },
-                isErrorValue = errorText != null,
+                isError = errorText != null,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Uri,
                     imeAction = ImeAction.Go,
                 ),
-                onImeActionPerformed = { _, _ ->
+                keyboardActions = KeyboardActions {
                     submit()
                 },
-                activeColor = MaterialTheme.colors.secondary,
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedLabelColor = MaterialTheme.colors.secondary,
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                ),
             )
             AnimatedVisibility(visible = errorText != null) {
                 Text(
@@ -153,7 +157,7 @@ class SetupScreen : AbstractScreen() {
                     onClick = submit,
                     modifier = Modifier.padding(4.dp),
                     enabled = !loading,
-                    colors = ButtonConstants.defaultTextButtonColors(MaterialTheme.colors.secondary),
+                    colors = ButtonDefaults.textButtonColors(MaterialTheme.colors.secondary),
                 ) {
                     Text(text = stringResource(R.string.connect_button_text))
                 }
@@ -201,7 +205,7 @@ class SetupScreen : AbstractScreen() {
 
     @Stable
     @Composable
-    @OptIn(ExperimentalFocus::class, ExperimentalAnimationApi::class)
+    @OptIn(ExperimentalAnimationApi::class)
     fun AuthInputStateless(
         username: String,
         password: String,
@@ -229,10 +233,13 @@ class SetupScreen : AbstractScreen() {
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next,
                 ),
-                onImeActionPerformed = { _, _ ->
+                keyboardActions = KeyboardActions {
                     passwordFocusRequester.requestFocus()
                 },
-                activeColor = MaterialTheme.colors.secondary,
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedLabelColor = MaterialTheme.colors.secondary,
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                ),
             )
             OutlinedTextField(
                 value = password,
@@ -246,10 +253,13 @@ class SetupScreen : AbstractScreen() {
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done,
                 ),
-                onImeActionPerformed = { _, _ ->
+                keyboardActions = KeyboardActions {
                     submit()
                 },
-                activeColor = MaterialTheme.colors.secondary,
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedLabelColor = MaterialTheme.colors.secondary,
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                ),
             )
             AnimatedVisibility(visible = error) {
                 Text(
@@ -264,7 +274,7 @@ class SetupScreen : AbstractScreen() {
                     onClick = submit,
                     modifier = Modifier.padding(4.dp),
                     enabled = !loading && username.isNotEmpty() && password.isNotEmpty(),
-                    colors = ButtonConstants.defaultTextButtonColors(MaterialTheme.colors.secondary),
+                    colors = ButtonDefaults.textButtonColors(MaterialTheme.colors.secondary),
                 ) {
                     Text(text = stringResource(R.string.login_button_text))
                 }

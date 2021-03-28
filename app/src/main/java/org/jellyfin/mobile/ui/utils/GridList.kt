@@ -1,18 +1,18 @@
 package org.jellyfin.mobile.ui.utils
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumnFor
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.WithConstraints
-import androidx.compose.ui.platform.DensityAmbient
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
 import kotlin.math.max
 import kotlin.math.min
 
@@ -29,22 +29,23 @@ fun <T> GridListFor(
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     itemContent: @Composable GridScope.(T) -> Unit
 ) {
-    WithConstraints {
-        val maxItemWidth = with(DensityAmbient.current) {
+    BoxWithConstraints {
+        val maxItemWidth = with(LocalDensity.current) {
             constraints.maxWidth.toDp() / numberOfColumns
         }
         val gridScope = GridScopeImpl(maxItemWidth)
 
-        // TODO: we really want an actual grid composable here
-        LazyColumnFor(
-            items = GridList(items, numberOfColumns),
+        // TODO: Use LazyVerticalGrid in the future
+        LazyColumn(
             modifier = modifier,
             contentPadding = contentPadding,
             horizontalAlignment = horizontalAlignment,
-        ) { row ->
-            Row(Modifier.fillParentMaxWidth()) {
-                row.fastForEach { info ->
-                    gridScope.itemContent(info)
+        ) {
+            items(GridList(items, numberOfColumns)) { row ->
+                Row(Modifier.fillParentMaxWidth()) {
+                    row.forEach { info ->
+                        gridScope.itemContent(info)
+                    }
                 }
             }
         }

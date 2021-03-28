@@ -9,45 +9,48 @@ import androidx.compose.material.Tab
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.drawLayer
-import androidx.compose.ui.platform.AnimationClockAmbient
-import androidx.compose.ui.platform.DensityAmbient
-import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.launch
 import org.jellyfin.mobile.ui.TopBarElevation
-import org.jellyfin.mobile.ui.utils.Pager
-import org.jellyfin.mobile.ui.utils.PagerState
 import kotlin.math.max
 
 @Composable
+@OptIn(ExperimentalPagerApi::class)
 fun TabbedContent(
     tabTitles: List<String>,
     currentTabState: MutableState<Int>,
     pageContent: @Composable (Int) -> Unit
 ) {
     Column {
-        val clock = AnimationClockAmbient.current
-        val pagerState = remember(clock) { PagerState(clock, currentTabState.value, 0, max(0, tabTitles.size - 1)) }
+        val coroutineScope = rememberCoroutineScope()
+        val pagerState = rememberPagerState(pageCount = max(0, tabTitles.size - 1), initialPage = 0)
 
-        val elevationPx = with(DensityAmbient.current) { TopBarElevation.toPx() }
+        val elevationPx = with(LocalDensity.current) { TopBarElevation.toPx() }
         ScrollableTabRow(
-            modifier = Modifier.fillMaxWidth().drawLayer(shadowElevation = elevationPx).zIndex(TopBarElevation.value),
+            modifier = Modifier.fillMaxWidth().graphicsLayer(shadowElevation = elevationPx).zIndex(TopBarElevation.value),
             selectedTabIndex = pagerState.currentPage,
             backgroundColor = MaterialTheme.colors.primary,
             divider = {},
         ) {
-            tabTitles.fastForEachIndexed { index, title ->
+            tabTitles.forEachIndexed { index, title ->
                 Tab(selected = index == pagerState.currentPage, onClick = {
-                    currentTabState.value = index
-                    pagerState.currentPage = index
+                    coroutineScope.launch {
+                        currentTabState.value = index
+                        pagerState.scrollToPage(index)
+                    }
                 }, text = {
                     Text(title)
                 })
             }
         }
-        Pager(state = pagerState) {
+        HorizontalPager(state = pagerState) { page ->
             Column(modifier = Modifier.fillMaxSize()) {
                 pageContent(page)
             }

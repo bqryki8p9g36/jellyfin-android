@@ -2,9 +2,9 @@ package org.jellyfin.mobile.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Providers
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticAmbientOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import com.github.zsoltk.compose.router.BackStack
 import com.github.zsoltk.compose.router.Router
 import org.jellyfin.mobile.controller.ServerController
@@ -21,7 +21,7 @@ import org.jellyfin.mobile.ui.screen.library.music.ArtistScreen
 @Composable
 fun AppContent() {
     val serverController: ServerController by inject()
-    Crossfade(current = serverController.loginState) { loginState ->
+    Crossfade(targetState = serverController.loginState) { loginState ->
         when (loginState) {
             LoginState.PENDING -> Unit // do nothing
             LoginState.NOT_LOGGED_IN -> injectContent<SetupScreen>()
@@ -30,13 +30,13 @@ fun AppContent() {
     }
 }
 
-val BackStackAmbient = staticAmbientOf<BackStack<Routing>>()
+val LocalBackStack = staticCompositionLocalOf<BackStack<Routing>> { throw IllegalStateException() }
 
 @Composable
 fun AppRouter() {
     Router<Routing>("App", Routing.Home) { backStack ->
-        Providers(values = arrayOf(BackStackAmbient provides backStack)) {
-            Crossfade(current = backStack.last()) { route ->
+        CompositionLocalProvider(LocalBackStack provides backStack) {
+            Crossfade(targetState = backStack.last()) { route ->
                 when (route) {
                     is Routing.Home -> injectContent<HomeScreen>()
                     is Routing.Library -> remember(route.info) { LibraryScreen(route.info) }.Content()

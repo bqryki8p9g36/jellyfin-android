@@ -6,7 +6,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jellyfin.mobile.model.dto.ArtistInfo
-import org.jellyfin.mobile.ui.BackStackAmbient
+import org.jellyfin.mobile.ui.LocalBackStack
 import org.jellyfin.mobile.ui.Routing
 import org.jellyfin.mobile.ui.screen.library.BaseMediaItem
 import org.jellyfin.mobile.ui.utils.GridListFor
@@ -18,7 +18,7 @@ fun ArtistList(artists: SnapshotStateList<ArtistInfo>) {
         numberOfColumns = 3,
         contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
     ) { artist ->
-        val backstack = BackStackAmbient.current
+        val backstack = LocalBackStack.current
         BaseMediaItem(info = artist, modifier = Modifier.fillItemMaxWidth(), onClick = {
             backstack.push(Routing.Artist(artist))
         })

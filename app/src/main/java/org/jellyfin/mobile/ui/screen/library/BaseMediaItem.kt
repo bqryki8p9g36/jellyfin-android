@@ -2,6 +2,7 @@ package org.jellyfin.mobile.ui.screen.library
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -11,9 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.WithConstraints
-import androidx.compose.ui.platform.DensityAmbient
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jellyfin.apiclient.model.dto.BaseItemType
@@ -37,8 +37,8 @@ fun BaseMediaItem(
             .clickable(onClick = onClick)
             .padding(8.dp),
     ) {
-        WithConstraints {
-            val imageSize = with(DensityAmbient.current) { constraints.maxWidth.toDp() }
+        BoxWithConstraints {
+            val imageSize = with(LocalDensity.current) { constraints.maxWidth.toDp() }
             ApiImage(
                 id = info.id,
                 modifier = Modifier.size(imageSize).clip(DefaultCornerRounding),
@@ -46,13 +46,14 @@ fun BaseMediaItem(
                 imageTag = info.primaryImageTag,
                 fallback = {
                     Image(
-                        asset = vectorResource(
+                        painter = painterResource(
                             when (info.itemType) {
                                 BaseItemType.MusicAlbum -> R.drawable.fallback_image_album_cover
                                 BaseItemType.MusicArtist -> R.drawable.fallback_image_person
                                 else -> 0
                             }
-                        )
+                        ),
+                        contentDescription = null,
                     )
                 },
             )

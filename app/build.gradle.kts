@@ -109,6 +109,7 @@ dependencies {
     implementation(Dependencies.Lifecycle.runtime)
     implementation(Dependencies.Lifecycle.common)
     implementation(Dependencies.Lifecycle.process)
+    implementation(Dependencies.Lifecycle.compose)
 
     // UI
     implementation(Dependencies.UI.constraintLayout)
@@ -121,7 +122,6 @@ dependencies {
     // Jetpack Compose
     implementation(Dependencies.Compose.runtime)
     implementation(Dependencies.Compose.ui)
-    implementation(Dependencies.Compose.uiTooling)
     implementation(Dependencies.Compose.foundation)
     implementation(Dependencies.Compose.animation)
     implementation(Dependencies.Compose.material)
@@ -130,6 +130,7 @@ dependencies {
     implementation(Dependencies.Compose.runtimeLiveData)
     implementation(Dependencies.Compose.composeRouter)
     implementation(Dependencies.Compose.accompanistCoil)
+    implementation(Dependencies.Compose.accompanistPager)
 
     // Room
     implementation(Dependencies.Room.runtime)

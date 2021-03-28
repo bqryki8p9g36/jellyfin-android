@@ -8,7 +8,7 @@ object Dependencies {
 
         // Core
         const val koin = "2.1.6"
-        const val appCompat = "1.2.0"
+        const val appCompat = "1.3.0-rc01"
         const val androidxCore = "1.5.0-beta03"
         const val activity = "1.2.1"
         const val fragment = "1.3.1"
@@ -25,9 +25,9 @@ object Dependencies {
         const val modernAndroidPreferences = "2.0"
 
         // Compose
-        const val compose = "1.0.0-alpha07"
-        const val composeRouter = "0.22.0"
-        const val accompanistCoil = "0.3.3.1"
+        const val compose = "1.0.0-beta03"
+        const val composeRouter = "0.24.2"
+        const val accompanist = "0.7.0"
 
         // Room
         const val room = "2.2.6"
@@ -77,6 +77,7 @@ object Dependencies {
         val runtime = lifecycle("runtime-ktx")
         val common = lifecycle("common-java8")
         val process = lifecycle("process")
+        val compose = lifecycle("viewmodel-compose", "1.0.0-alpha01")
     }
 
     object UI {
@@ -91,7 +92,6 @@ object Dependencies {
     object Compose {
         val runtime = compose("runtime")
         val ui = compose("ui")
-        val uiTooling = androidx("ui", "tooling", Versions.compose)
         val foundation = compose("foundation")
         val animation = compose("animation")
         val material = compose("material")
@@ -99,7 +99,8 @@ object Dependencies {
         val materialIconsExtended = compose("material", "icons-extended")
         val runtimeLiveData = compose("runtime", "livedata")
         const val composeRouter = "com.github.zsoltk:compose-router:${Versions.composeRouter}"
-        const val accompanistCoil = "dev.chrisbanes.accompanist:accompanist-coil:${Versions.accompanistCoil}"
+        const val accompanistCoil = "com.google.accompanist:accompanist-coil:${Versions.accompanist}"
+        const val accompanistPager = "com.google.accompanist:accompanist-pager:${Versions.accompanist}"
     }
 
     object Room {
@@ -149,7 +150,7 @@ object Dependencies {
     private fun androidx(module: String, variant: String?, version: String) = "androidx.$module:$module${variant?.let { "-$it" } ?: ""}:$version"
     private fun androidxKtx(module: String, version: String) = "androidx.$module:$module-ktx:$version"
     private fun kotlinx(module: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$module:$version"
-    private fun lifecycle(module: String) = "androidx.lifecycle:lifecycle-$module:${Versions.lifecycleExtensions}"
+    private fun lifecycle(module: String, version: String = Versions.lifecycleExtensions) = "androidx.lifecycle:lifecycle-$module:${version}"
     private fun room(module: String) = "androidx.room:room-$module:${Versions.room}"
     private fun compose(module: String, variant: String? = null) = "androidx.compose.$module:$module${variant?.let { "-$it" } ?: ""}:${Versions.compose}"
     private fun exoPlayer(module: String) = "com.google.android.exoplayer:exoplayer-$module:${Versions.exoPlayer}"

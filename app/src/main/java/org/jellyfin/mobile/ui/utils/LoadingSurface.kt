@@ -1,17 +1,14 @@
 package org.jellyfin.mobile.ui.utils
 
-import androidx.compose.animation.ColorPropKey
-import androidx.compose.animation.core.*
-import androidx.compose.animation.transition
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
-private val surfaceColorProp = ColorPropKey()
+//private val surfaceColorProp = ColorPropKey()
 private val LoadingBlinkEasing = CubicBezierEasing(0.5f, 0f, 0.8f, 0.4f)
 
 @Stable
@@ -20,19 +17,19 @@ fun LoadingSurface(
     modifier: Modifier = Modifier,
     baseColor: Color = MaterialTheme.colors.onSurface
 ) {
-    val state = transition(
+    /*val state = transition(
         definition = createTransition(baseColor = baseColor),
         initState = 0,
         toState = 1,
-    )
+    )*/
 
     Surface(
         modifier = modifier,
-        color = state[surfaceColorProp],
+        //color = state[surfaceColorProp],
         content = {},
     )
 }
-
+/*
 @Stable
 @Composable
 private fun createTransition(baseColor: Color) = remember(baseColor) {
@@ -49,3 +46,4 @@ private fun createTransition(baseColor: Color) = remember(baseColor) {
         }
     }
 }
+*/

@@ -1,21 +1,25 @@
 package org.jellyfin.mobile.ui.screen.home
 
-import androidx.compose.foundation.InteractionState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.ContextAmbient
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import org.jellyfin.mobile.R
 import org.jellyfin.mobile.controller.ServerController
 import org.jellyfin.mobile.model.dto.UserInfo
@@ -44,7 +48,7 @@ fun UserDetailsButton(
     showUserDetails: (Boolean) -> Unit
 ) {
     UserImage(
-        modifier = modifier.clickable(interactionState = remember { InteractionState() }) {
+        modifier = modifier.clickable {
             showUserDetails(true)
         },
         user = user,
@@ -59,7 +63,7 @@ fun UserDetails(
 ) {
     Popup(
         alignment = Alignment.TopCenter,
-        isFocusable = true,
+        properties = PopupProperties(focusable = true),
         onDismissRequest = {
             showUserDetails(false)
         },
@@ -80,7 +84,7 @@ fun UserDetails(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    val context = ContextAmbient.current
+                    val context = LocalContext.current
                     ChipletButton(
                         text = stringResource(R.string.profile_button_text),
                         onClick = {

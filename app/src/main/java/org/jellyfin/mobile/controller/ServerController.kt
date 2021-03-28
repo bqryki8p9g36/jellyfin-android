@@ -49,7 +49,7 @@ class ServerController(
             }
             loginState = if (serverUser != null) {
                 val (user, server) = serverUser
-                apiClient.ChangeServerLocation(server.hostname)
+                apiClient.ChangeServerLocation(server.hostname.trimEnd('/'))
                 apiClient.SetAuthenticationInfo(user.accessToken, user.userId)
                 userInfo = apiClient.getUserInfo(user.userId)?.let { dto ->
                     UserInfo(user.id, dto)
@@ -108,7 +108,7 @@ class ServerController(
             }
 
             // Set API client address
-            apiClient.ChangeServerLocation(httpUrl.toString())
+            apiClient.ChangeServerLocation(httpUrl.toString().trimEnd('/'))
 
             serverInfo = apiClient.getPublicSystemInfo()
             if (serverInfo != null)

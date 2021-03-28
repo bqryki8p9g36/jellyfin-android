@@ -5,14 +5,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
-import androidx.compose.runtime.Providers
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
-import com.github.zsoltk.compose.backpress.AmbientBackPressHandler
+import androidx.lifecycle.ViewTreeLifecycleOwner
 import com.github.zsoltk.compose.backpress.BackPressHandler
+import com.github.zsoltk.compose.backpress.LocalBackPressHandler
 import com.github.zsoltk.compose.savedinstancestate.BundleScope
-import com.github.zsoltk.compose.savedinstancestate.saveAmbient
+import com.github.zsoltk.compose.savedinstancestate.saveLocal
 import org.jellyfin.mobile.databinding.FragmentMainBinding
 import org.jellyfin.mobile.ui.utils.ContextTheme
 import org.jellyfin.mobile.utils.applyWindowInsetsAsMargins
@@ -34,20 +35,21 @@ class MainFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _viewBinding = FragmentMainBinding.inflate(inflater, container, false)
         return composeView.apply { applyWindowInsetsAsMargins() }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ViewTreeLifecycleOwner.set(composeView, this)
 
         // Apply window insets
         ViewCompat.requestApplyInsets(composeView)
 
         composeView.setContent {
             BundleScope(savedInstanceState) {
-                Providers(AmbientBackPressHandler provides backPressHandler) {
+                CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
                     composeView.context.ContextTheme {
                         AppContent()
                     }
@@ -58,6 +60,6 @@ class MainFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.saveAmbient()
+        outState.saveLocal()
     }
 }

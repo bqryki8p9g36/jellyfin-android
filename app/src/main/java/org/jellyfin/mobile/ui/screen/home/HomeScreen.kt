@@ -9,8 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.font
-import androidx.compose.ui.text.font.fontFamily
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jellyfin.mobile.R
@@ -30,7 +30,7 @@ class HomeScreen(
         val (userDetailsShown, showUserDetails) = userDetailsState
         ScreenScaffold(
             title = stringResource(R.string.app_name_short),
-            titleFont = fontFamily(font(R.font.quicksand)),
+            titleFont = FontFamily(Font(R.font.quicksand)),
             actions = {
                 UserDetailsButton(
                     user = currentUser,
